@@ -1,68 +1,153 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# immutable
 
-## Available Scripts
+### Map
 
-In the project directory, you can run:
+Immutable의 Map은 **객체** 대신 사용하는 데이터 구조  
 
-### `npm start`
+내부에서 Map을 사용하지 않으면 추 후 setIn, getIn을 활용 할 수 없다.
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
 
-### `npm test`
+```javascript
+const {Map} = Immutable;
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+const data = Map({
+  a:1,
+  b:2,
+  c: Map({
+    d:3,
+    e:4,
+    f:5
+  })
+});
+```
 
-### `npm run build`
+객체 내용을 네트워크에서 받아 오거나 전달받는 객체가 너무 복잡한 상태라면 일일이 그 내부까지 Map으로 만들기 힘들수도 있다.
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+이때는 fromJS를 사용할 수 있다.
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+### fromJS
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+fromJS를 사용하면 이 코드처럼 내부에 있는 객체들은 Map을 쓰지 않아도 된다.
 
-### `npm run eject`
+```javascript
+const {Map, fromJS} = Immutable;
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+const data = fromJS({
+  a:1,
+  b:2,
+  c: {
+    d:3,
+    e:4,
+    f:5
+  }
+});
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+해당 데이터를 실제로 활용하거나 업데이트를 해야 할 때는 내장 함수를 사용해야 한다.
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+예를 들어 data내부의 a값을 참조하고 싶다면
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+data.a로 작성하는 것이 아니라, **data.get('a')** 를 해야 한다.
 
-## Learn More
+#### - 자바스크립트 객체로 변환
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+immutable 객체를 일반 객체 형태로 변형하는 방법은 다음과 같다.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```javascript
+const {Map, fromJS} = Immutable;
 
-### Code Splitting
+const data = Map({
+  a:1,
+  b:2,
+  c: Map({
+    d:3,
+    e:4,
+    f:5
+  })
+});
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+const deserialized = data.toJS();
+console.log(deserialized);
+//{a: 1, b: 2, c: { d :3, e :4 }}
+```
 
-### Analyzing the Bundle Size
+특정 키의 값 불러오기  
+특정 키의 값을 불러올 때는 get 함수를 사용합니다.
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+```javascript
+data.get('a'); //1
+```
 
-### Making a Progressive Web App
+깊숙이 위치하는 값 불러오기  
+Map 내부에 또 Map이 존재하고, 그 Map 안에 있는 키 값을 불러올 때는 getIn 함수를 사용한다.
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+```javascript
+data.getIn(['c' , 'd' ]); //3
+```
 
-### Advanced Configuration
+#### - 값 설정
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+새 값을 설정할 때는 get 대신 set을 사용한다.
 
-### Deployment
+```javascript
+const newData = data.set('a', 4);
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+set을 한다고 해서 데이터가 실제로 변하는 것은 아닌다.
 
-### `npm run build` fails to minify
+주어진 변화를 적용한 새 Map을 만드는 것이다.
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+```javascript
+console.log(newData === data);
+```
+
+
+서로 다른 Map이기 때문에 false를 프린트한다.
+
+기존 data값은 그대로 남아 있고, 변화가 적용 된 데이터를 newData에 저장하는 것이다.
+
+
+#### - 깊숙이 위치하는 값 수정 ( setIn )
+
+깊숙이 위차하는 값을 수정할 때는 setIn을 사용한다.
+
+이때 내부에 있는 객체들도 Map 형태여야만 사용할 수 있다는 점에 주의해야 한다.
+
+```javascript
+const newData = data.setIn(['c','d'],10);
+```
+
+#### - 여러 값 동시에 설정 ( marge )
+
+값 여러 개를 동시에 설정해야 할 때는 mergeIn를 사용한다.
+
+예를 들어 c값과 d값, c값과 e값을 동시에 바꾸어야 할 때는 코드를 다음과 같이 입력한다.
+
+**[ 방법 1 ]**
+
+```javascript
+const newData = data.mergeIn(['c'], { d : 10, e : 10})
+```
+
+이렇게 mergeIn를 사용하면 c안에 들어 있는 f값은 그대로 유지하면서 d값과 e값만 변경한다.
+
+또는 코드를 다음과 같이 입력 할 수도 있다.
+
+**[ 방법 2 ]**
+
+```javascript
+const newData = data.setIn(['c', 'd'], 10)
+                    .setIn(['c', 'e'], 10);
+```
+
+그리고 최상위에서 merge를 해야 할 때는 코드를 다음과 같이 입력한다.
+
+```javascript
+const newData = data.marge({a : 10 , b : 10});
+```
+즉, set을 여러번 할지, 아니면 merge를 할지는 그때그때 상황에 맞춰 주면 되지만,
+
+성능상으로 set을 여러번 하는것이 빠르다
+
+( 하지만 애초에 오래 걸리는 작업이 아니므로 실제 처리 시간의 차이는 매우 미미하다.)
