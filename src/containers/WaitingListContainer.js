@@ -47,8 +47,8 @@ class WaitingListContainer extends Component {
 }
 
 const mapStateToProps = ({ waiting }) => ({
-  input: waiting.input,
-  list: waiting.list,
+  input: waiting.get('input'),
+  list: waiting.get('list'),
 });
 
 // 이런 구조로 하면 나중에 다양한 리덕스 모듈을 적용해야 하는 상황에서 유용합니다.

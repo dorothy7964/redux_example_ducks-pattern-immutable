@@ -23,12 +23,12 @@ const WaitingList = ({
 }) => {
   const waitingItems = waitingList.map(w => (
     <WaitingItem
-      key={w.id}
-      id={w.id}
-      text={w.name}
-      entered={w.entered}
-      onEnter={() => onEnter(w.id)}
-      onLeave={() => onLeave(w.id)}
+      key={w.get('id')}
+      id={w.get('id')}
+      text={w.get('name')}
+      entered={w.get('entered')}
+      onEnter={() => onEnter(w.get('id'))}
+      onLeave={() => onLeave(w.get('id'))}
     />
   ));
 

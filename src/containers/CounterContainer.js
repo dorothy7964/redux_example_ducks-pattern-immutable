@@ -24,8 +24,8 @@ class CounterContainer extends Component {
 }
 
 const mapStateToProps = ({ counter }) => ({
-  color: counter.color,
-  number: counter.number,
+  color: counter.get('color'),
+  number: counter.get('number'),
 });
 
 // **** 함수가 아닌 객체 설정시 자동 bindActionCreators 됨
